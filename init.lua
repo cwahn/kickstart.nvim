@@ -14,7 +14,7 @@
 ========         |'-..................-'|   |____o|          ========
 ========         `"")----------------(""`   ___________      ========
 ========        /::::::::::|  |::::::::::\  \ no mouse \     ========
-========       /:::========|  |==hjkl==:::\  \ required \    ========
+========       /:::========|  |==jkl;==:::\  \ required \    ========
 ========      '""""""""""""'  '""""""""""""'  '""""""""""'   ========
 ========                                                     ========
 =====================================================================
@@ -97,6 +97,9 @@ vim.g.have_nerd_font = false
 -- See `:help vim.opt`
 -- NOTE: You can change these options as you wish!
 --  For more options, you can see `:help option-list`
+
+-- Enable true-color
+vim.opt.termguicolors = true
 
 -- Make line numbers default
 vim.opt.number = true
@@ -189,10 +192,10 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 --  Use CTRL+<hjkl> to switch between windows
 --
 --  See `:help wincmd` for a list of all window commands
-vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
-vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
-vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
-vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+vim.keymap.set('n', '<C-j>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
+vim.keymap.set('n', '<C-;>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
+vim.keymap.set('n', '<C-k>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
+vim.keymap.set('n', '<C-l>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
@@ -399,11 +402,20 @@ require('lazy').setup({
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
         --
-        -- defaults = {
-        --   mappings = {
-        --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-        --   },
-        -- },
+        defaults = {
+          mappings = {
+            i = {
+              -- INsert mode mappings
+              ['<C-j>'] = 'move_selection_previous',
+              ['<C-k>'] = 'move_selection_next',
+            },
+            n = {
+              -- Normal mode mappings
+              ['j'] = 'move_selection_previous',
+              ['k'] = 'move_selection_next',
+            },
+          },
+        },
         -- pickers = {}
         extensions = {
           ['ui-select'] = {
@@ -887,6 +899,14 @@ require('lazy').setup({
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
       vim.cmd.colorscheme 'tokyonight-night'
+
+      -- Make background transparent
+      vim.cmd [[
+        highlight Normal      guibg=NONE ctermbg=NONE
+        highlight NonText     guibg=NONE ctermbg=NONE
+        highlight NormalFloat guibg=NONE ctermbg=NONE
+        highlight EndOfBuffer guibg=NONE ctermbg=NONE
+      ]]
     end,
   },
 
@@ -968,8 +988,8 @@ require('lazy').setup({
   -- require 'kickstart.plugins.debug',
   -- require 'kickstart.plugins.indent_line',
   -- require 'kickstart.plugins.lint',
-  -- require 'kickstart.plugins.autopairs',
-  -- require 'kickstart.plugins.neo-tree',
+  require 'kickstart.plugins.autopairs',
+  require 'kickstart.plugins.neo-tree',
   -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
@@ -1006,3 +1026,23 @@ require('lazy').setup({
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+
+-- Basic movement in all modes
+for _, mode in ipairs { 'n', 'v', 'o', 's' } do
+  vim.keymap.set(mode, 'j', 'h')
+  vim.keymap.set(mode, 'k', 'j')
+  vim.keymap.set(mode, 'l', 'k')
+  vim.keymap.set(mode, ';', 'l')
+end
+
+-- Window navigation
+vim.keymap.set('n', '<C-j>', '<C-w>h')
+vim.keymap.set('n', '<C-k>', '<C-w>j')
+vim.keymap.set('n', '<C-l>', '<C-w>k')
+vim.keymap.set('n', '<C-;>', '<C-w>l')
+
+-- Terminal mode
+vim.keymap.set('t', '<C-j>', '<C-\\><C-n><C-w>h')
+vim.keymap.set('t', '<C-k>', '<C-\\><C-n><C-w>j')
+vim.keymap.set('t', '<C-l>', '<C-\\><C-n><C-w>k')
+vim.keymap.set('t', '<C-;>', '<C-\\><C-n><C-w>l')
