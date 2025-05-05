@@ -14,7 +14,7 @@
 ========         |'-..................-'|   |____o|          ========
 ========         `"")----------------(""`   ___________      ========
 ========        /::::::::::|  |::::::::::\  \ no mouse \     ========
-========       /:::========|  |==jkl;==:::\  \ required \    ========
+========       /:::========|  |==hjkl==:::\  \ required \    ========
 ========      '""""""""""""'  '""""""""""""'  '""""""""""'   ========
 ========                                                     ========
 =====================================================================
@@ -192,10 +192,10 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 --  Use CTRL+<hjkl> to switch between windows
 --
 --  See `:help wincmd` for a list of all window commands
-vim.keymap.set('n', '<C-j>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
-vim.keymap.set('n', '<C-;>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
-vim.keymap.set('n', '<C-k>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
-vim.keymap.set('n', '<C-l>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
+vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
+vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
+vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
@@ -402,20 +402,11 @@ require('lazy').setup({
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
         --
-        defaults = {
-          mappings = {
-            i = {
-              -- INsert mode mappings
-              ['<C-j>'] = 'move_selection_previous',
-              ['<C-k>'] = 'move_selection_next',
-            },
-            n = {
-              -- Normal mode mappings
-              ['j'] = 'move_selection_previous',
-              ['k'] = 'move_selection_next',
-            },
-          },
-        },
+        -- defaults = {
+        --   mappings = {
+        --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
+        --   },
+        -- },
         -- pickers = {}
         extensions = {
           ['ui-select'] = {
@@ -702,6 +693,11 @@ require('lazy').setup({
             },
           },
         },
+
+        rust_analyzer = {
+          mason = false,
+          cmd = { vim.fn.expand '$HOME/.cargo/bin/rust-analyzer' },
+        },
       }
 
       -- Ensure the servers and tools above are installed
@@ -890,23 +886,26 @@ require('lazy').setup({
     config = function()
       ---@diagnostic disable-next-line: missing-fields
       require('tokyonight').setup {
-        styles = {
-          comments = { italic = false }, -- Disable italics in comments
-        },
+        transparent = true,
       }
 
       -- Load the colorscheme here.
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'tokyonight-night'
+      -- vim.cmd.colorscheme 'tokyonight-night'
+    end,
+  },
 
-      -- Make background transparent
-      vim.cmd [[
-        highlight Normal      guibg=NONE ctermbg=NONE
-        highlight NonText     guibg=NONE ctermbg=NONE
-        highlight NormalFloat guibg=NONE ctermbg=NONE
-        highlight EndOfBuffer guibg=NONE ctermbg=NONE
-      ]]
+  {
+    'navarasu/onedark.nvim',
+    priority = 1000, -- make sure to load this before all the other start plugins
+    config = function()
+      require('onedark').setup {
+        style = 'dark',
+        transparent = true,
+      }
+
+      vim.cmd.colorscheme 'onedark'
     end,
   },
 
@@ -956,7 +955,7 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'rust', 'toml' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
@@ -1026,23 +1025,3 @@ require('lazy').setup({
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
-
--- Basic movement in all modes
-for _, mode in ipairs { 'n', 'v', 'o', 's' } do
-  vim.keymap.set(mode, 'j', 'h')
-  vim.keymap.set(mode, 'k', 'j')
-  vim.keymap.set(mode, 'l', 'k')
-  vim.keymap.set(mode, ';', 'l')
-end
-
--- Window navigation
-vim.keymap.set('n', '<C-j>', '<C-w>h')
-vim.keymap.set('n', '<C-k>', '<C-w>j')
-vim.keymap.set('n', '<C-l>', '<C-w>k')
-vim.keymap.set('n', '<C-;>', '<C-w>l')
-
--- Terminal mode
-vim.keymap.set('t', '<C-j>', '<C-\\><C-n><C-w>h')
-vim.keymap.set('t', '<C-k>', '<C-\\><C-n><C-w>j')
-vim.keymap.set('t', '<C-l>', '<C-\\><C-n><C-w>k')
-vim.keymap.set('t', '<C-;>', '<C-\\><C-n><C-w>l')
