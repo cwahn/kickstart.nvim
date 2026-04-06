@@ -26,4 +26,12 @@ return {
       },
     },
   },
+  config = function(_, opts)
+    require('neo-tree').setup(opts)
+    vim.cmd([[
+      hi NeoTreeNormal guibg=NONE ctermbg=NONE
+      hi NeoTreeNormalNC guibg=NONE ctermbg=NONE
+      hi NeoTreeSignColumn guibg=NONE ctermbg=NONE
+    ]])
+  end,
 }
