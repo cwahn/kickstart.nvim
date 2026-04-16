@@ -835,8 +835,7 @@ require('lazy').setup({
   -- },
 
   {
-    dir = '/Users/chanwooahn/Documents/dev/nvim/cwahn-onedark.nvim',
-    name = 'cwahn-onedark',
+    "cwahn/onedark.nvim",
     priority = 1000,
     config = function()
       require('onedark').setup { transparent = true }
