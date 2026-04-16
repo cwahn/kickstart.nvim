@@ -839,7 +839,7 @@ require('lazy').setup({
     name = 'cwahn-onedark',
     priority = 1000,
     config = function()
-      require('onedark').setup {}
+      require('onedark').setup { transparent = true }
       vim.cmd.colorscheme 'onedark'
     end,
   },
