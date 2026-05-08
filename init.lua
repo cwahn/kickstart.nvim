@@ -458,7 +458,6 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>/', function()
         -- You can pass additional configuration to Telescope to change the theme, layout, etc.
         builtin.current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
-          winblend = 10,
           previewer = false,
         })
       end, { desc = '[/] Fuzzily search in current buffer' })
@@ -840,6 +839,8 @@ require('lazy').setup({
     config = function()
       require('onedark').setup { transparent = true }
       vim.cmd.colorscheme 'onedark'
+      -- Solid float background for glass-like effect (theme bg0)
+      vim.api.nvim_set_hl(0, 'NormalFloat', { bg = '#181a1f' })
     end,
   },
 
