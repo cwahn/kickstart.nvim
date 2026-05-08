@@ -29,6 +29,7 @@ return {
           ['\\'] = 'close_window',
         },
       },
+      use_libuv_file_watcher = true,
     },
   },
   config = function(_, opts)
