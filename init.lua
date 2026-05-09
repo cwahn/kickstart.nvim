@@ -787,15 +787,6 @@ require('lazy').setup({
 
       sources = {
         default = { 'lsp', 'path', 'snippets' },
-        per_filetype = {
-          AvanteInput = { 'avante', 'lsp', 'path', 'snippets' },
-        },
-        providers = {
-          avante = {
-            module = 'blink-cmp-avante',
-            name = 'Avante',
-          },
-        },
       },
 
       snippets = { preset = 'luasnip' },
