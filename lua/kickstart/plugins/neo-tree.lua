@@ -34,6 +34,17 @@ return {
   },
   config = function(_, opts)
     require('neo-tree').setup(opts)
+
+    -- Refresh Neo-tree when Neovim regains focus (external edits, e.g. opencode)
+    vim.api.nvim_create_autocmd({ 'VimResume', 'FocusGained' }, {
+      desc = 'Refresh Neo-tree on focus',
+      callback = function()
+        pcall(function()
+          require('neo-tree.sources.manager').refresh('filesystem')
+        end)
+      end,
+    })
+
     vim.cmd [[
       hi NeoTreeNormal guibg=NONE ctermbg=NONE
       hi NeoTreeNormalNC guibg=NONE ctermbg=NONE
