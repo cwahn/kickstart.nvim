@@ -30,6 +30,9 @@ return {
         },
       },
       use_libuv_file_watcher = true,
+      filtered_items = {
+        visible = true,
+      },
     },
   },
   config = function(_, opts)
@@ -41,6 +44,33 @@ return {
       callback = function()
         pcall(function()
           require('neo-tree.sources.manager').refresh('filesystem')
+        end)
+      end,
+    })
+
+    -- Detect external file changes when the user pauses typing
+    vim.api.nvim_create_autocmd('CursorHold', {
+      desc = 'Check for external file changes on hold',
+      callback = function()
+        pcall(vim.cmd.checktime)
+      end,
+    })
+
+    -- Reveal externally changed file in Neo-tree when checktime reloads it
+    vim.api.nvim_create_autocmd('FileChangedShellPost', {
+      desc = 'Reveal externally changed file in Neo-tree',
+      callback = function(args)
+        vim.schedule(function()
+          local filepath = vim.api.nvim_buf_get_name(args.buf)
+          if filepath == '' then return end
+          pcall(function()
+            require('neo-tree.command').execute({
+              source = 'filesystem',
+              action = 'show',
+              reveal_file = filepath,
+              reveal_force_cwd = true,
+            })
+          end)
         end)
       end,
     })
