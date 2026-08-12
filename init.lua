@@ -248,6 +248,41 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+-- Generate RFC 9562 UUIDv4 values using libuv's cross-platform system CSPRNG.
+local last_uuid
+
+local function uuid_v4()
+  local random, err = vim.uv.random(16)
+  if not random then error('Failed to generate UUID: ' .. err) end
+
+  local bytes = { random:byte(1, 16) }
+  bytes[7] = bytes[7] % 16 + 0x40
+  bytes[9] = bytes[9] % 64 + 0x80
+
+  return string.format('%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x', unpack(bytes))
+end
+
+local function paste_uuid(uuid) return vim.api.nvim_paste(uuid, false, -1) end
+
+local function insert_new_uuid()
+  local uuid = uuid_v4()
+  if paste_uuid(uuid) then last_uuid = uuid end
+end
+
+local function repeat_last_uuid()
+  if not last_uuid then
+    vim.notify('No UUID has been generated in this session', vim.log.levels.ERROR)
+    return
+  end
+
+  paste_uuid(last_uuid)
+end
+
+vim.api.nvim_create_user_command('UuidNew', insert_new_uuid, { desc = 'Generate and insert a new UUIDv4' })
+vim.api.nvim_create_user_command('UuidRepeat', repeat_last_uuid, { desc = 'Insert the last generated UUID' })
+vim.keymap.set('n', '<leader>un', insert_new_uuid, { desc = 'Insert [N]ew UUID' })
+vim.keymap.set('n', '<leader>ur', repeat_last_uuid, { desc = '[R]epeat last UUID' })
+
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
 -- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
@@ -354,6 +389,7 @@ require('lazy').setup({
       spec = {
         { '<leader>s', group = '[S]earch', mode = { 'n', 'v' } },
         { '<leader>t', group = '[T]oggle' },
+        { '<leader>u', group = '[U]UID' },
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } }, -- Enable gitsigns recommended keymaps first
         { 'gr', group = 'LSP Actions', mode = { 'n' } },
       },
