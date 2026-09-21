@@ -5,7 +5,7 @@
 ---@type LazySpec
 return {
   'nvim-neo-tree/neo-tree.nvim',
-  version = '*',
+  version = '3.42.0',
   dependencies = {
     'nvim-lua/plenary.nvim',
     'nvim-tree/nvim-web-devicons', -- not strictly required, but recommended
@@ -38,41 +38,19 @@ return {
   config = function(_, opts)
     require('neo-tree').setup(opts)
 
-    -- Refresh Neo-tree when Neovim regains focus (external edits, e.g. opencode)
-    vim.api.nvim_create_autocmd({ 'VimResume', 'FocusGained' }, {
-      desc = 'Refresh Neo-tree on focus',
-      callback = function()
-        pcall(function()
-          require('neo-tree.sources.manager').refresh('filesystem')
-        end)
-      end,
-    })
+    -- Neo-tree does not yet observe linked-worktree common Git directories.
+    local neo_tree_git_events = vim.api.nvim_create_augroup('NeoTreeGitRefresh', { clear = true })
+    local function fire_git_event()
+      local ok, events = pcall(require, 'neo-tree.events')
+      if ok then
+        events.fire_event(events.GIT_EVENT)
+      end
+    end
 
-    -- Detect external file changes when the user pauses typing
-    vim.api.nvim_create_autocmd('CursorHold', {
-      desc = 'Check for external file changes on hold',
-      callback = function()
-        pcall(vim.cmd.checktime)
-      end,
-    })
-
-    -- Reveal externally changed file in Neo-tree when checktime reloads it
-    vim.api.nvim_create_autocmd('FileChangedShellPost', {
-      desc = 'Reveal externally changed file in Neo-tree',
-      callback = function(args)
-        vim.schedule(function()
-          local filepath = vim.api.nvim_buf_get_name(args.buf)
-          if filepath == '' then return end
-          pcall(function()
-            require('neo-tree.command').execute({
-              source = 'filesystem',
-              action = 'show',
-              reveal_file = filepath,
-              reveal_force_cwd = true,
-            })
-          end)
-        end)
-      end,
+    -- Refresh after returning to Neo-tree until upstream supports git-common-dir.
+    vim.api.nvim_create_autocmd({ 'FocusGained', 'TabEnter' }, {
+      group = neo_tree_git_events,
+      callback = fire_git_event,
     })
 
     vim.cmd [[
