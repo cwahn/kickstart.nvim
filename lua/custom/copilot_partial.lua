@@ -46,7 +46,7 @@ local function reconcile(bufnr)
   local state = states[bufnr]
   if not state then return end
   local row, col = cursor(bufnr)
-  if not row or row < state.row or (row == state.row and col < state.col) then
+  if row == nil or col == nil or row < state.row or (row == state.row and col < state.col) then
     clear(bufnr)
     return
   end
@@ -95,7 +95,7 @@ end
 
 local function insert_at_cursor(bufnr, text)
   local row, col, win = cursor(bufnr)
-  if not row then return end
+  if row == nil or col == nil or win == nil then return end
   local lines = vim.split(text, '\n', { plain = true })
   api.nvim_buf_set_text(bufnr, row, col, row, col, lines)
   row = row + #lines - 1
@@ -107,7 +107,10 @@ end
 local function notify_partial(state)
   local client = state.client_id and vim.lsp.get_client_by_id(state.client_id)
   if not client or not state.original or not state.original.range then return end
-  client:notify('textDocument/didPartiallyAcceptCompletion', {
+  -- Copilot extends LSP with this notification; Neovim's method type lists only standard methods.
+  local method = 'textDocument/didPartiallyAcceptCompletion'
+  ---@cast method vim.lsp.protocol.Method.ClientToServer.Notification
+  client:notify(method, {
     item = state.original,
     acceptedLength = vim.str_utfindex(state.accepted, 'utf-16'),
   })
@@ -124,7 +127,7 @@ function M.accept_item(item, kind)
   if type(item.insert_text) ~= 'string' then return item end
   local bufnr = api.nvim_get_current_buf()
   local row, col = cursor(bufnr)
-  if not row then return end
+  if row == nil or col == nil then return end
 
   local insert_text = item.insert_text:gsub('\r\n', '\n')
   local already_typed = ''
