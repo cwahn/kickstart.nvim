@@ -173,6 +173,20 @@ vim.o.confirm = true
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
 
+-- Blink uses <Tab> for snippet navigation and falls back to this map otherwise.
+vim.keymap.set('i', '<Tab>', function()
+  if require('custom.copilot_partial').accept_all() then return '' end
+  return '<Tab>'
+end, { expr = true, desc = 'Accept Copilot suggestion or insert Tab' })
+vim.keymap.set('i', '<M-Right>', function()
+  if require('custom.copilot_partial').accept_part('word') then return '' end
+  return '<M-Right>'
+end, { expr = true, desc = 'Accept next Copilot word' })
+vim.keymap.set('i', '<M-C-Right>', function()
+  if require('custom.copilot_partial').accept_part('line') then return '' end
+  return '<M-C-Right>'
+end, { expr = true, desc = 'Accept next Copilot line' })
+
 -- Clear highlights on search when pressing <Esc> in normal mode
 --  See `:help hlsearch`
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
@@ -642,6 +656,10 @@ require('lazy').setup({
           --
           -- When you move your cursor, the highlights will be cleared (the second autocommand).
           local client = vim.lsp.get_client_by_id(event.data.client_id)
+          if client and client.name == 'copilot' and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlineCompletion, event.buf) then
+            vim.lsp.inline_completion.enable(true, { bufnr = event.buf })
+          end
+
           if client and client:supports_method('textDocument/documentHighlight', event.buf) then
             local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
             vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
@@ -691,6 +709,8 @@ require('lazy').setup({
         -- But for many setups, the LSP (`ts_ls`) will work just fine
         -- ts_ls = {},
 
+        -- Mason uses the package name copilot-language-server (listed below).
+        copilot = { mason = false },
         stylua = {}, -- Used to format Lua code
 
         -- Special Lua Config, as recommended by neovim help docs
@@ -735,8 +755,12 @@ require('lazy').setup({
       --    :Mason
       --
       -- You can press `g?` for help in this menu.
-      local ensure_installed = vim.tbl_keys(servers or {})
+      local ensure_installed = {}
+      for name, server in pairs(servers) do
+        if server.mason ~= false then table.insert(ensure_installed, name) end
+      end
       vim.list_extend(ensure_installed, {
+        'copilot-language-server',
         -- You can add other tools here that you want Mason to install
       })
 
